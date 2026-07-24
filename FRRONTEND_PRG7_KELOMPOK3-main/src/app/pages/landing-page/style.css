@@ -1,0 +1,18 @@
+.hero-model {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.hero-section-card {
+  min-height: 500px;
+}
+
+@media (max-width: 991px) {
+  .hero-model {
+    width: 280px !important;
+    height: auto !important;
+    margin-bottom: 30px;
+  }
+}
