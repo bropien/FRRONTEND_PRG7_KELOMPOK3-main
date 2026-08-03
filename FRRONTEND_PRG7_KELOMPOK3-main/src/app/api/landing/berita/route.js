@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { encryptIdUrl } from "@/lib/encryptor";
 
 export async function GET() {
   try {
@@ -25,10 +26,20 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json({
-      error: false,
-      data,
-    });
+    const rawData = Array.isArray(data)
+    ? data
+    : data.data || data.Data || [];
+    
+        const securedData = rawData.map((item) => ({
+          ...item,
+          encryptedId: encryptIdUrl(item.id || item.Id),
+        }));
+    
+        return NextResponse.json({
+          error: false,
+          data: securedData,
+        });
+
   } catch (err) {
     console.error(err);
 

@@ -9,11 +9,11 @@ import { useEffect, useState, useRef } from "react";
 export default function LandingLayout({ children }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const router = useRouter();
   const dropdownRef = useRef(null);
-
-  
+  const mobileMenuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +27,15 @@ export default function LandingLayout({ children }) {
         !dropdownRef.current.contains(event.target)
       ) {
         setOpenDropdown(null);
+      }
+      
+      // Close mobile menu when clicking outside
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target) &&
+        !event.target.closest('.hamburger-button')
+      ) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -67,12 +76,12 @@ export default function LandingLayout({ children }) {
 
     {
       name: "Penelitian",
-      url: "/penelitian",
+      url: "/pages/landing-page/penelitian",
     },
 
     {
       name: "Pengabdian",
-      url: "/pengabdian",
+      url: "/pages/landing-page/pengabdian",
     },
 
     {
@@ -83,34 +92,6 @@ export default function LandingLayout({ children }) {
       name: "Inovasi",
       url: "/inovasi",
     },
-
-    // ================= HKI DROPDOWN =================
-    // {
-    //   name: "HKI",
-    //   dropdown: [
-    //     {
-    //       label: "Form Pengajuan Pendaftaran HKI",
-    //       url: "https://lppm.polytechnic.astra.ac.id/wp-content/uploads/2025/09/PA-Format-Formulir-Pengajuan-Pendaftaran-HKI.docx",
-    //       external: true,
-    //     },
-    //     {
-    //       label: "Format Pelaporan HKI",
-    //       url: "/dokumen/format-pelaporan-hki",
-    //     },
-    //     {
-    //       label: "Surat Pernyataan Orisinalitas",
-    //       url: "/dokumen/surat-pernyataan-orisinalitas",
-    //     },
-    //     {
-    //       label: "Surat Pernyataan",
-    //       url: "/dokumen/surat-pernyataan",
-    //     },
-    //     {
-    //       label: "Surat Pengalihan Hak Cipta",
-    //       url: "/dokumen/surat-pengalihan-hak-cipta",
-    //     },
-    //   ],
-    // },
 
     // ================= INFORMASI DROPDOWN =================
     {
@@ -139,6 +120,7 @@ export default function LandingLayout({ children }) {
     } else {
       router.push(item.url);
     }
+    setIsMobileMenuOpen(false);
   };
 
   // ================= HANDLE DROPDOWN =================
@@ -148,6 +130,12 @@ export default function LandingLayout({ children }) {
     } else {
       setOpenDropdown(menuName);
     }
+  };
+
+  // ================= TOGGLE MOBILE MENU =================
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setOpenDropdown(null);
   };
 
   return (
@@ -207,7 +195,7 @@ export default function LandingLayout({ children }) {
               </div>
             </button>
 
-            {/* ================= MENU ================= */}
+            {/* ================= DESKTOP MENU ================= */}
             <nav 
             ref={dropdownRef} className="d-none d-lg-flex align-items-center gap-4">
 
@@ -348,23 +336,224 @@ export default function LandingLayout({ children }) {
 
             </nav>
 
-            {/* ================= LOGIN BUTTON ================= */}
-            <Link
-              href="/auth/login"
-              className="btn fw-semibold"
-              style={{
-                backgroundColor: "white",
-                color: "#0D5AA7",
-                borderRadius: "30px",
-                padding: "8px 24px",
-                border: "none",
-              }}
-            >
-              Login
-            </Link>
+            {/* ================= RIGHT SIDE (Login + Hamburger) ================= */}
+            <div className="d-flex align-items-center gap-3">
+              {/* Login Button */}
+              <Link
+                href="/auth/login"
+                className="btn fw-semibold"
+                style={{
+                  backgroundColor: "white",
+                  color: "#0D5AA7",
+                  borderRadius: "30px",
+                  padding: "8px 24px",
+                  border: "none",
+                  fontSize: "14px",
+                }}
+              >
+                Login
+              </Link>
+
+              {/* Hamburger Button - Mobile */}
+              <button
+                className="hamburger-button d-lg-none"
+                onClick={toggleMobileMenu}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "white",
+                  fontSize: "28px",
+                  cursor: "pointer",
+                  padding: "5px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "5px",
+                }}
+                aria-label="Toggle menu"
+              >
+                <span style={{
+                  display: "block",
+                  width: "28px",
+                  height: "3px",
+                  backgroundColor: "white",
+                  borderRadius: "3px",
+                  transition: "all 0.3s ease",
+                  transform: isMobileMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"
+                }}></span>
+                <span style={{
+                  display: "block",
+                  width: "28px",
+                  height: "3px",
+                  backgroundColor: "white",
+                  borderRadius: "3px",
+                  transition: "all 0.3s ease",
+                  opacity: isMobileMenuOpen ? 0 : 1
+                }}></span>
+                <span style={{
+                  display: "block",
+                  width: "28px",
+                  height: "3px",
+                  backgroundColor: "white",
+                  borderRadius: "3px",
+                  transition: "all 0.3s ease",
+                  transform: isMobileMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none"
+                }}></span>
+              </button>
+            </div>
 
           </div>
         </div>
+
+        {/* ================= MOBILE MENU OVERLAY ================= */}
+        {isMobileMenuOpen && (
+          <div
+            ref={mobileMenuRef}
+            style={{
+              position: "fixed",
+              top: "75px",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              zIndex: 9998,
+            }}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <div
+              style={{
+                backgroundColor: "#0D5AA7",
+                padding: "20px",
+                maxWidth: "400px",
+                marginLeft: "auto",
+                height: "100%",
+                overflowY: "auto",
+                boxShadow: "-5px 0 15px rgba(0,0,0,0.3)",
+                animation: "slideIn 0.3s ease",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <style jsx>{`
+                @keyframes slideIn {
+                  from {
+                    transform: translateX(100%);
+                  }
+                  to {
+                    transform: translateX(0);
+                  }
+                }
+              `}</style>
+
+              {/* Mobile Menu Items */}
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}>
+                {menuItems.map((item) => {
+                  // Dropdown item
+                  if (item.dropdown) {
+                    return (
+                      <div key={item.name}>
+                        <button
+                          onClick={() => handleDropdownClick(item.name)}
+                          style={{
+                            width: "100%",
+                            padding: "12px 15px",
+                            background: "transparent",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            borderRadius: "8px",
+                            color: "white",
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            textAlign: "left",
+                            cursor: "pointer",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          {item.name}
+                          <span style={{
+                            fontSize: "12px",
+                            transition: "transform 0.3s ease",
+                            transform: openDropdown === item.name ? "rotate(180deg)" : "none"
+                          }}>
+                            ▼
+                          </span>
+                        </button>
+
+                        {openDropdown === item.name && (
+                          <div style={{
+                            marginTop: "5px",
+                            marginLeft: "10px",
+                            borderLeft: "2px solid rgba(255,255,255,0.2)",
+                            paddingLeft: "15px",
+                          }}>
+                            {item.dropdown.map((subItem) => (
+                              <button
+                                key={subItem.label}
+                                onClick={() => handleNavigation(subItem)}
+                                style={{
+                                  width: "100%",
+                                  padding: "10px 15px",
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "rgba(255,255,255,0.9)",
+                                  fontSize: "14px",
+                                  textAlign: "left",
+                                  cursor: "pointer",
+                                  borderRadius: "4px",
+                                  transition: "0.2s",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = "rgba(255,255,255,0.1)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = "transparent";
+                                }}
+                              >
+                                {subItem.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // Normal item
+                  return (
+                    <button
+                      key={item.name}
+                      onClick={() => handleNavigation(item)}
+                      style={{
+                        width: "100%",
+                        padding: "12px 15px",
+                        background: "transparent",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "8px",
+                        color: "white",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        transition: "0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "rgba(255,255,255,0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {item.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ================= MAIN CONTENT ================= */}
@@ -387,7 +576,7 @@ export default function LandingLayout({ children }) {
           <div className="row g-2">
 
             {/* ================= INFO ================= */}
-            <div className="col-lg-4">
+            <div className="col-lg-4 col-md-6">
               <div className="d-flex align-items-center gap-2 mb-2">
                 <Img
                   src="/images/IMG_Logo.png"
@@ -436,7 +625,7 @@ export default function LandingLayout({ children }) {
             </div>
 
             {/* ================= SEKRETARIAT ================= */}
-            <div className="col-lg-4">
+            <div className="col-lg-4 col-md-6">
               <h5
                 className="fw-bold mb-2"
                 style={{
@@ -538,7 +727,7 @@ export default function LandingLayout({ children }) {
             </div>
 
             {/* ================= MENU CEPAT ================= */}
-            <div className="col-lg-4">
+            <div className="col-lg-4 col-md-12">
               <h5
                 className="fw-bold mb-2"
                 style={{

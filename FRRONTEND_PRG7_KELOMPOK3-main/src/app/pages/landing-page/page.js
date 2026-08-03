@@ -6,14 +6,37 @@ import LandingLayout from "@/components/layout/Landing";
 import Img from "@/components/common/Img";
 import "./style.css";
 
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    ArcElement,
+    Tooltip,
+    Legend,
+} from "chart.js";
+
+import { Bar, Pie } from "react-chartjs-2";
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    ArcElement,
+    Tooltip,
+    Legend
+);
+
 export default function LandingPage() {
   const router = useRouter();
   const scrollContainerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [beritaData, setBeritaData] = useState([]);
   const [dashboard, setDashboard] = useState({
-    totalPengabdian: 0,
-    totalPenelitian: 0,
+      totalPengabdian:0,
+      totalPenelitian:0,
+      chartPengabdian:[],
+      chartPenelitian:[]
   });
   const [showLP2M, setShowLP2M] = useState(false);
   const [showDiagram, setShowDiagram] = useState(false);
@@ -40,7 +63,7 @@ export default function LandingPage() {
       behavior: "smooth",
     });
   };
-  
+
   const scrollRight = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -54,6 +77,52 @@ export default function LandingPage() {
           : container.scrollLeft + width,
       behavior: "smooth",
     });
+  };
+
+  // CHART OPTIONS - Sama seperti dashboard admin
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
+  // PERBAIKAN: Tambahkan optional chaining untuk menghindari error
+  const pengabdianChart = {
+      labels: (dashboard.chartPengabdian || []).map(x => x.namaBulan),
+      datasets:[
+          {
+              label:"Pengabdian",
+              data: (dashboard.chartPengabdian || []).map(x => x.total),
+              backgroundColor: "#6f42c1",
+              borderRadius: 6,
+          }
+      ]
+  };
+  
+  const penelitianChart = {
+    labels: (dashboard.chartPenelitian || []).map(x => x.namaBulan),
+    datasets: [
+      {
+        label: "Penelitian",
+        data: (dashboard.chartPenelitian || []).map(x => x.total),
+        backgroundColor: "#0d6efd",
+        borderRadius: 6,
+      },
+    ],
   };
 
   // Fungsi scroll ke index tertentu (untuk dot indicator)
@@ -75,14 +144,30 @@ export default function LandingPage() {
       const result = await res.json();
 
       if (!result.error) {
-        setDashboard({
-          totalPengabdian: result.data.totalPengabdian,
-          totalPenelitian: result.data.totalPenelitian,
-        });
+        setDashboard(result.data);
       }
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // PIE CHART dengan warna yang lebih baik
+  const pieData = {
+      labels:["Pengabdian","Penelitian"],
+      datasets:[
+          {
+              data:[
+                  dashboard.totalPengabdian || 0,
+                  dashboard.totalPenelitian || 0
+              ],
+              backgroundColor: [
+                  "#6f42c1",
+                  "#0d6efd"
+              ],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+          }
+      ]
   };
 
   // Handle scroll untuk menampilkan/menyembunyikan elemen
@@ -91,14 +176,14 @@ export default function LandingPage() {
       const beritaSection = document.getElementById('berita');
       const lp2mSection = document.getElementById('home');
       const diagramSection = document.getElementById('diagram');
-      
+
       // Handle LP2M
       if (beritaSection && lp2mSection) {
-        const beritaRect = beritaSection.getBoundingClientRect();
+        
         const lp2mRect = lp2mSection.getBoundingClientRect();
-        
+
         const isLp2mVisible = lp2mRect.top < window.innerHeight && lp2mRect.bottom > 0;
-        
+
         if (isLp2mVisible || lp2mRect.top < 0) {
           setShowLP2M(true);
         } else {
@@ -110,7 +195,7 @@ export default function LandingPage() {
       if (diagramSection) {
         const diagramRect = diagramSection.getBoundingClientRect();
         const isDiagramVisible = diagramRect.top < window.innerHeight && diagramRect.bottom > 0;
-        
+
         if (isDiagramVisible || diagramRect.top < 0) {
           setShowDiagram(true);
         } else {
@@ -179,8 +264,8 @@ export default function LandingPage() {
     }
   };
 
-  const handleDetailBerita = (id) => {
-    router.push(`/pages/landing-page/detail-berita/${id}`);
+  const handleDetailBerita = (encryptedId) => {
+    router.push(`/pages/landing-page/detail-berita/${encryptedId}`);
   };
 
   return (
@@ -220,7 +305,7 @@ export default function LandingPage() {
           </button>
 
         {/* Tombol kanan */}
-        
+
           <button
             onClick={scrollRight}
             style={{
@@ -264,15 +349,15 @@ export default function LandingPage() {
                 cursor: "pointer",
               }}
             >
-              {/* Background Image */}
-              <Img
-                src={item.konten}
-                alt={item.judul}
-                width={1920}
-                height={1080}
-                objectFit="cover"
-                className="w-100 h-100"
-              />
+            {/* Background Image */}
+            <Img
+              src={item.konten}
+              alt={item.judul}
+              width={1920}
+              height={1080}
+              objectFit="cover"
+              className="w-100 h-100"
+            />
 
               {/* Overlay */}
               <div
@@ -296,19 +381,6 @@ export default function LandingPage() {
                   zIndex: 10,
                 }}
               >
-                <div
-                  style={{
-                    display: "inline-block",
-                    background: "#0B5AA7",
-                    padding: "8px 20px",
-                    borderRadius: "20px",
-                    marginBottom: "20px",
-                    fontWeight: "600",
-                  }}
-                >
-                  {item.tanggal}
-                </div>
-
                 <h1
                   style={{
                     fontSize: "64px",
@@ -333,7 +405,7 @@ export default function LandingPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDetailBerita(item.id);
+                    handleDetailBerita(item.encryptedId);
                   }}
                   style={{
                     background: "#0B5AA7",
@@ -385,7 +457,7 @@ export default function LandingPage() {
       </section>
 
       {/* ================================================= */}
-      {/* LP2M SECTION - Background biru tetap, card muncul dari kiri ke tengah */}
+      {/* LP2M SECTION */}
       {/* ================================================= */}
       <section
         id="home"
@@ -456,7 +528,7 @@ export default function LandingPage() {
       </section>
 
       {/* ================================================= */}
-      {/* DATA & DIAGRAM - Card dari kiri, Grafik dari kanan */}
+      {/* DATA & DIAGRAM - Pie di kiri, Bar Charts vertikal di kanan */}
       {/* ================================================= */}
       <section
         id="diagram"
@@ -482,7 +554,7 @@ export default function LandingPage() {
           </h1>
 
           <div className="row g-4">
-            {/* CARD PERSENTASE - Dari kiri */}
+            {/* KOLOM KIRI - PIE CHART */}
             <div className="col-lg-4">
               <div
                 className="bg-white rounded-5 shadow p-4 h-100"
@@ -492,216 +564,71 @@ export default function LandingPage() {
                   transform: showDiagram ? "translateX(0)" : "translateX(-100%)",
                 }}
               >
-                <h4 className="fw-bold mb-4">Data Persentase</h4>
-                <div
-                  className="rounded-4 text-center p-4 mb-4"
-                  style={{
-                    backgroundColor: "#D4834E",
-                    color: "white",
-                  }}
-                >
-                  <h5>Data Penelitian</h5>
-                    <h1 className="fw-bold">
-                      {dashboard.totalPenelitian}
-                    </h1>
-                </div>
-                <div
-                  className="rounded-4 text-center p-4"
-                  style={{
-                    backgroundColor: "#66A800",
-                    color: "white",
-                  }}
-                >
-                  <h5>Data Pengabdian</h5>
-                    <h1 className="fw-bold">
-                      {dashboard.totalPengabdian}
-                    </h1>
-                </div>
-                {/* BUTTON NAVIGASI */}
-                <div className="mt-4">
-                  <div className="d-flex align-items-end gap-3">
-                    <div className="d-flex flex-column gap-3 flex-grow-1">
-                      <button
-                        style={{
-                          backgroundColor: "#0B5AA7",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "12px",
-                          padding: "14px 20px",
-                          fontWeight: "600",
-                          fontSize: "16px",
-                          transition: "0.3s",
-                          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#1E6ABF";
-                          e.currentTarget.style.transform = "translateY(-2px)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#0B5AA7";
-                          e.currentTarget.style.transform = "translateY(0)";
-                        }}
-                      >
-                        Masuk ke Data Penelitian
-                      </button>
-
-                      <button
-                        style={{
-                          backgroundColor: "#0B5AA7",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "12px",
-                          padding: "14px 20px",
-                          fontWeight: "600",
-                          fontSize: "16px",
-                          transition: "0.3s",
-                          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#1E6ABF";
-                          e.currentTarget.style.transform = "translateY(-2px)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#0B5AA7";
-                          e.currentTarget.style.transform = "translateY(0)";
-                        }}
-                      >
-                        Masuk ke Data Pengabdian
-                      </button>
-                    </div>
-                  </div>
+                <h4 className="fw-bold mb-4 text-center">Data Persentase</h4>
+                <div style={{ height: "250px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <Pie 
+                    data={pieData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: true,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                              size: 14,
+                              weight: 'bold'
+                            }
+                          }
+                        }
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>
 
-            {/* GRAFIK MANUAL - Dari kanan */}
             <div className="col-lg-8">
-              <div
-                className="bg-white rounded-5 shadow p-4"
-                style={{
-                  transition: "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
-                  opacity: showDiagram ? 1 : 0,
-                  transform: showDiagram ? "translateX(0)" : "translateX(100%)",
-                }}
-              >
-                <h4 className="fw-bold mb-5">Grafik Penelitian & Pengabdian</h4>
-
-                <div className="mb-5">
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Pengabdian</span>
-                    <span>{dashboard.totalPengabdian}</span>
-                  </div>
-
-                  <div
-                    className="w-100 rounded-pill"
-                    style={{
-                      height: "25px",
-                      background: "#E9ECEF",
-                    }}
-                  >
-                    <div
-                      className="rounded-pill"
-                      style={{
-                        width: `${
-                          (dashboard.totalPengabdian /
-                            Math.max(
-                              dashboard.totalPengabdian,
-                              dashboard.totalPenelitian,
-                              1
-                            )) *
-                          100
-                        }%`,
-                        height: "100%",
-                        background: "#66A800",
-                        transition: "width 1s ease",
-                      }}
+              <div className="d-flex flex-column gap-4">
+                {/* GRAFIK PENGABDIAN */}
+                <div
+                  className="bg-white rounded-5 shadow p-4"
+                  style={{
+                    transition: "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                    opacity: showDiagram ? 1 : 0,
+                    transform: showDiagram ? "translateX(0)" : "translateX(100%)",
+                  }}
+                >
+                  <h6 className="fw-bold mb-3 text-center">Grafik Pengabdian</h6>
+                  <div style={{ height: "280px" }}>
+                    <Bar
+                      data={pengabdianChart}
+                      options={chartOptions}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Penelitian</span>
-                    <span>{dashboard.totalPenelitian}</span>
-                  </div>
-
-                  <div
-                    className="w-100 rounded-pill"
-                    style={{
-                      height: "25px",
-                      background: "#E9ECEF",
-                    }}
-                  >
-                    <div
-                      className="rounded-pill"
-                      style={{
-                        width: `${
-                          (dashboard.totalPenelitian /
-                            Math.max(
-                              dashboard.totalPengabdian,
-                              dashboard.totalPenelitian,
-                              1
-                            )) *
-                          100
-                        }%`,
-                        height: "100%",
-                        background: "#0B5AA7",
-                        transition: "width 1s ease",
-                      }}
+                {/* GRAFIK PENELITIAN */}
+                <div
+                  className="bg-white rounded-5 shadow p-4"
+                  style={{
+                    transition: "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                    opacity: showDiagram ? 1 : 0,
+                    transform: showDiagram ? "translateX(0)" : "translateX(100%)",
+                  }}
+                >
+                  <h6 className="fw-bold mb-3 text-center">Grafik Penelitian</h6>
+                  <div style={{ height: "280px" }}>
+                    <Bar
+                      data={penelitianChart}
+                      options={chartOptions}
                     />
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================================================= */}
-      {/* PENJELASAN LPPM */}
-      {/* ================================================= */}
-      <section
-        id="tentang"
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "#2C6AA0",
-          padding: "100px 0",
-        }}
-      >
-        <div className="container">
-          <div className="row align-items-center hero-section-card">
-            {/* IMAGE */}
-            <div className="col-lg-4 text-center">
-              <Img
-                src="/images/penjelasan-LPPM.png"
-                alt="LPPM"
-                width={500}
-                height={500}
-                className="img-fluid"
-              />
-            </div>
-
-            {/* TEXT */}
-            <div className="col-lg-8 text-white">
-              <h1
-                className="fw-bold mb-4"
-                style={{
-                  fontSize: "70px",
-                }}
-              >
-                LPPM
-              </h1>
-              <p
-                style={{
-                  fontSize: "28px",
-                  lineHeight: "50px",
-                }}
-              >
-                LPPM Politeknik Astra merupakan unsur pelaksana akademik
-                yang melaksanakan penelitian, pengembangan inovasi,
-                serta pengabdian kepada masyarakat guna mendukung
-                pengembangan ilmu pengetahuan dan teknologi.
-              </p>
             </div>
           </div>
         </div>
@@ -714,7 +641,7 @@ export default function LandingPage() {
         id="visi-misi"
         style={{
           minHeight: "100vh",
-          backgroundColor: "#F5F5F5",
+          backgroundColor: "#0B5AA7",
           padding: "100px 0",
         }}
       >
@@ -725,8 +652,8 @@ export default function LandingPage() {
               <div
                 className="rounded-5 shadow p-5"
                 style={{
-                  backgroundColor: "#2C6AA0",
-                  color: "white",
+                  backgroundColor: "#F5F5F5",
+                  color: "#0B5AA7",
                 }}
               >
                 <h1
@@ -756,8 +683,8 @@ export default function LandingPage() {
               <div
                 className="rounded-5 shadow p-5"
                 style={{
-                  backgroundColor: "#2C6AA0",
-                  color: "white",
+                  backgroundColor: "#F5F5F5",
+                  color: "#0B5AA7",
                 }}
               >
                 <h1

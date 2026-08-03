@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
+import { decryptIdUrl } from "@/lib/encryptor";
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const id = searchParams.get("id");
+    const encryptedId = searchParams.get("id");
+
+    if (!encryptedId) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "ID Berita tidak ditemukan.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const id = decryptIdUrl(encryptedId);
 
     if (!id) {
       return NextResponse.json(

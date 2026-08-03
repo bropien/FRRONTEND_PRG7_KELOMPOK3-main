@@ -13,7 +13,7 @@ import Editor from "@/components/common/Editor";
 import DropDown from "@/components/common/Dropdown";
 
 const JENIS_OPTIONS = [
-  { Value: "Beranda", Text: "Beranda" },
+   { Value: "Informasi", Text: "Informasi" },
   { Value: "Panduan", Text: "Panduan" },
   { Value: "Penelitian", Text: "Penelitian" },
   { Value: "Publikasi Ilmiah", Text: "Publikasi Ilmiah" },
@@ -41,6 +41,7 @@ export default function AddBeritaPage() {
     tanggal: "",
     jenis: "",
     banner: "0",
+    penerima: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -52,6 +53,10 @@ export default function AddBeritaPage() {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
+
+        ...(name === "jenis" && value !== "Informasi"
+          ? { penerima: "" }
+          : {}),
       }));
 
       if (errors[name]) {
@@ -118,6 +123,10 @@ export default function AddBeritaPage() {
       newErrors.jenis = "Jenis wajib dipilih";
     }
 
+    if (formData.jenis === "Informasi" && !formData.penerima?.trim()) {
+      newErrors.penerima = "Penerima wajib diisi untuk jenis Informasi";
+    }
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -145,6 +154,7 @@ export default function AddBeritaPage() {
             deskripsi: stripHtml(formData.deskripsi),
             tanggal: formData.tanggal,
             jenis: formData.jenis,
+            penerima: formData.penerima,
             banner: formData.banner,
             konten: formData.konten,
             
@@ -243,6 +253,19 @@ export default function AddBeritaPage() {
                   />
                 </div>
 
+                <div className="col-lg-3">
+                  <Input
+                    label="Penerima"
+                    name="penerima"
+                    id="penerima"
+                    value={formData.penerima}
+                    onChange={handleChange}
+                    error={errors.penerima}
+                    disabled={formData.jenis !== "Informasi"}
+                    required={formData.jenis === "Informasi"}
+                  />
+                </div>
+
                 <div className="col-lg-2 d-flex align-items-end">
                   <div className="form-check mb-2">
                     <input
@@ -269,7 +292,7 @@ export default function AddBeritaPage() {
                     value={formData.deskripsi}
                     onChange={handleChange}
                     error={errors.deskripsi}
-                    maxLength={maxLengthRules.deskripsi}
+                   
                     required
                   />
                 </div>

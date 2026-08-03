@@ -14,7 +14,7 @@ import Editor from "@/components/common/Editor";
 import Dropdown from "@/components/common/Dropdown";
 
 const JENIS_OPTIONS = [
-  { Value: "Beranda", Text: "Beranda" },
+   {Value: "Informasi", Text: "Informasi" },
   { Value: "Panduan", Text: "Panduan" },
   { Value: "Penelitian", Text: "Penelitian" },
   { Value: "Publikasi Ilmiah", Text: "Publikasi Ilmiah" },
@@ -30,8 +30,9 @@ const initialFormData = {
   konten: "",
   pathKonten:"",
   tanggal: "",
-  jenis:""
-  ,banner: "0",
+  jenis:"",
+  penerima:"",
+  banner: "0",
 };
 
 export default function EditBeritaPage() {
@@ -77,6 +78,7 @@ export default function EditBeritaPage() {
         pathKonten: path,
         tanggal: data.tanggal || data.Tanggal,
         jenis: data.jenis || data.Jenis,
+        penerima: data.penerima || data.Penerima || "",
         banner: data.banner || data.Banner || "0",
       });
 
@@ -111,6 +113,10 @@ export default function EditBeritaPage() {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
+
+        ...(name === "jenis" && value !== "Informasi"
+          ? { penerima: "" }
+          : {}),
       }));
 
       if (errors[name]) {
@@ -165,6 +171,13 @@ export default function EditBeritaPage() {
       newErrors.jenis = "Jenis wajib diisi";
     }
 
+    if (
+      formData.jenis === "Informasi" &&
+      !formData.penerima?.trim()
+    ) {
+      newErrors.penerima = "Penerima wajib diisi untuk jenis Informasi";
+    }
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -210,6 +223,7 @@ export default function EditBeritaPage() {
             deskripsi: stripHtml(formData.deskripsi),
             tanggal: formData.tanggal,
             jenis: formData.jenis,
+             penerima: formData.penerima,
             banner: formData.banner,
             konten: formData.konten || formData.pathKonten ,
           }),
@@ -308,6 +322,23 @@ export default function EditBeritaPage() {
                         arrData={JENIS_OPTIONS}
                         errorMessage={errors.jenis}
                         isRequired={true}
+                      />
+                    </div>
+
+                    <div className="col-md-6 mt-3">
+                      <Input
+                        label="Penerima"
+                        name="penerima"
+                        value={formData.penerima}
+                        onChange={handleChange}
+                        error={errors.penerima}
+                        disabled={formData.jenis !== "Informasi"}
+                        required={formData.jenis === "Informasi"}
+                        placeholder={
+                          formData.jenis === "Informasi"
+                            ? "Masukkan penerima informasi"
+                            : "Tidak tersedia"
+                        }
                       />
                     </div>
 

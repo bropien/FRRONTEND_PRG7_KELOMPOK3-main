@@ -4,10 +4,19 @@ import { useEffect, useState, useCallback } from "react";
 import LandingLayout from "@/components/layout/Landing";
 import Toast from "@/components/common/Toast";
 import Table from "@/components/common/Table";
+import Paging from "@/components/common/Paging";
+import Formsearch from "@/components/common/Formsearch";
+
+const PAGE_SIZE = 10;
 
 export default function DokumenTemplatePage() {
   const [dataDokumen, setDataDokumen] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [pageSize] = useState(PAGE_SIZE);
+  const [search, setSearch] = useState("");
 
 
   const handleDownload = useCallback(
@@ -68,12 +77,15 @@ export default function DokumenTemplatePage() {
   );
 
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (page, keyword) => {
     try {
       setLoading(true);
 
       const params = new URLSearchParams({
         jenis: "Template",
+        page: String(page),
+        pageSize: String(PAGE_SIZE),
+        ...(keyword && { keyword }),
       });
 
       const response = await fetch(
@@ -91,10 +103,13 @@ export default function DokumenTemplatePage() {
           ? result.data.data
           : []
       );
+      setTotalData(result.data.totalData ?? 0);
+      setCurrentPage(page);
 
     } catch (err) {
       Toast.error(err.message);
       setDataDokumen([]);
+      setTotalData(0);
 
     } finally {
       setLoading(false);
@@ -104,15 +119,31 @@ export default function DokumenTemplatePage() {
 
 
   useEffect(() => {
-    loadData();
+    loadData(1, "");
   }, [loadData]);
+
+
+  const handleSearch = useCallback(
+    (keyword) => {
+      setSearch(keyword);
+      loadData(1, keyword);
+    },
+    [loadData]
+  );
+
+  const handleNavigation = useCallback(
+    (page) => {
+      loadData(page, search);
+    },
+    [search, loadData]
+  );
 
 
   const transformedData = dataDokumen.map((item, index) => ({
   Key: item.id,
   id: item.id,
 
-  No: index + 1,
+  No: (currentPage - 1) * PAGE_SIZE + index + 1,
 
   "Nama Template Dokumen": item.namaDokumen,
 
@@ -159,6 +190,13 @@ export default function DokumenTemplatePage() {
           Template Dokumen
         </h1>
 
+        <Formsearch
+          onSearch={handleSearch}
+          showAddButton={false}
+          showFilterButton={false}
+          showExportButton={false}
+          searchPlaceholder="Cari nama template dokumen"
+        />
 
         {
           loading ? (
@@ -177,26 +215,35 @@ export default function DokumenTemplatePage() {
           ) 
           :
           (
+            <>
+              <Table
+                data={transformedData}
+                size="Normal"
+                enableCheckbox={false}
+                config={{
+                  widths:{
+                    No:"5%",
+                    "Nama Template Dokumen":"50%",
+                    Bagian:"20%",
+                    "Jumlah Download":"15%",
+                    Aksi:"10%"
+                  },
 
-            <Table
-              data={transformedData}
-              size="Normal"
-              enableCheckbox={false}
-              config={{
-                widths:{
-                  No:"5%",
-                  "Nama Template Dokumen":"50%",
-                  Bagian:"20%",
-                  "Jumlah Download":"15%",
-                  Aksi:"10%"
-                },
+                  isWrap:{
+                    "Nama Template Dokumen":true
+                  }
+                }}
+              />
 
-                isWrap:{
-                  "Nama Template Dokumen":true
-                }
-              }}
-            />
-
+              {totalData > 0 && (
+                <Paging
+                  pageSize={pageSize}
+                  pageCurrent={currentPage}
+                  totalData={totalData}
+                  navigation={handleNavigation}
+                />
+              )}
+            </>
           )
         }
 

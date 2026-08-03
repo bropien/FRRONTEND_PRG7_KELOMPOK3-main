@@ -5,21 +5,25 @@ export async function GET(request) {
     const backendUrl = process.env.BACKEND_API_URL;
 
     const { searchParams } = new URL(request.url);
+    
+    const backendEndpoint = new URL(
+      `${backendUrl}/LandingPage/landing/data-pkm`
+    );
 
-    const keyword = searchParams.get("keyword") || "";
-    const jenis = searchParams.get("jenis") || "";
-    const page = searchParams.get("page") || "1";
-    const pageSize = searchParams.get("pageSize") || "10";
-
-    const query = new URLSearchParams({
-      ...(keyword && { Keyword: keyword }),
-      ...(jenis && { Jenis: jenis }),
-      PageNumber: page,
-      PageSize: pageSize,
+    searchParams.forEach((value, key) => {
+      if (value !== "") {
+        backendEndpoint.searchParams.append(key, value);
+      }
     });
 
     const response = await fetch(
-      `${backendUrl}/Dokumen/landing?${query}`
+      backendEndpoint.toString(),
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
 
     const data = await response.json();
@@ -28,7 +32,8 @@ export async function GET(request) {
       return NextResponse.json(
         {
           error: true,
-          message: data.message || "Gagal mengambil data dokumen.",
+          message:
+            data.message || "Gagal mengambil data pengabdian.",
         },
         {
           status: response.status,
@@ -38,14 +43,16 @@ export async function GET(request) {
 
     return NextResponse.json({
       error: false,
-      data,
+      data: data,
+      totalData: data.length,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
 
     return NextResponse.json(
       {
         error: true,
+        message: "Terjadi kesalahan server.",
       },
       {
         status: 500,

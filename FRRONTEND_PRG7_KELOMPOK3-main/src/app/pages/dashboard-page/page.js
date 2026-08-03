@@ -31,13 +31,14 @@ export default function DashboardPage() {
   const [bulan, setBulan] = useState("");
 
   const [dashboard, setDashboard] = useState({
-      totalKaryawan: 0,
-       totalAnggota: 0,
-        totalMahasiswa: 0,
-  totalProposalAnggota: 0,
-  totalProposalMahasiswa: 0,
-  totalDataPkm: 0,
-  totalDataProposal: 0,
+    totalPengabdianSkema: 0,
+    totalProposalAnggota: 0,
+    totalProposalMahasiswa: 0,
+    totalDataPkm: 0,
+    totalDataProposal: 0,
+
+    chartPengabdian: [],
+    chartDataPkm: [],
   });
 
   const tahunOptions = [
@@ -88,24 +89,17 @@ export default function DashboardPage() {
   }), []);
 
   const pengabdianChart = useMemo(() => ({
-    labels: ["Karyawan", "Anggota", "Mahasiswa"],
+    labels: dashboard.chartPengabdian?.map(item => item.namaBulan) ?? [],
+
     datasets: [
       {
-        label: "Total",
-        data: [
-          dashboard.totalKaryawan || 0,
-          dashboard.totalAnggota || 0,
-          dashboard.totalMahasiswa || 0,
-        ],
-        backgroundColor: [
-          "#6f42c1",
-          "#6610f2",
-          "#20c997",
-        ],
+        label: "Total Pengabdian",
+        data: dashboard.chartPengabdian?.map(item => item.total) ?? [],
+        backgroundColor: "#6f42c1",
         borderRadius: 6,
       },
     ],
-  }), [dashboard]);
+  }), [dashboard.chartPengabdian]);
 
   const proposalChart = useMemo(() => ({
     labels: ["Proposal Anggota", "Proposal Mahasiswa"],
@@ -126,20 +120,22 @@ export default function DashboardPage() {
   }), [dashboard]);
 
   const dataPkmChart = useMemo(() => ({
-    labels: ["Data PKM"],
+    labels:
+      dashboard.chartDataPkm?.map(item => item.namaBulan) ?? [],
+
     datasets: [
       {
-        label: "Total",
-        data: [
-          dashboard.totalDataPkm || 0,
-        ],
-        backgroundColor: [
-          "#198754",
-        ],
+        label: "Data PKM",
+
+        data:
+          dashboard.chartDataPkm?.map(item => item.total) ?? [],
+
+        backgroundColor: "#198754",
+
         borderRadius: 6,
       },
     ],
-  }), [dashboard]);
+  }), [dashboard.chartDataPkm]);
 
   const dataProposalChart = useMemo(() => ({
     labels: ["Data Proposal"],
@@ -209,6 +205,9 @@ export default function DashboardPage() {
         <div className="row">
 
           <div className="col-md-3">
+            <label htmlFor="bulan" className="form-label">
+              Bulan
+            </label>
             <DropDown
               forInput="bulan"
               type="pilih"
@@ -218,6 +217,9 @@ export default function DashboardPage() {
             />
           </div>
           <div className="col-md-3">
+            <label htmlFor="tahun" className="form-label">
+              Tahun
+            </label>
             <DropDown
               forInput="tahun"
               type="pilih"
@@ -245,7 +247,7 @@ export default function DashboardPage() {
             <Card>
               <div className="p-3">
                 <h6 className="mb-3">
-                  Statistik Pengabdian
+                  Statistik Skema Pengabdian
                 </h6>
 
                 <div style={{ height: "350px" }}>
@@ -279,7 +281,7 @@ export default function DashboardPage() {
             <Card>
               <div className="p-3">
                 <h6 className="mb-3">
-                  Statistik Data PKM
+                  Statistik Pengabdian
                 </h6>
 
                 <div style={{ height: "350px" }}>

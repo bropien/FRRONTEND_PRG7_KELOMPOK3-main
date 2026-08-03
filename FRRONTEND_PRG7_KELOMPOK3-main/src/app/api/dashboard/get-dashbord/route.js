@@ -69,35 +69,10 @@ export async function GET(request) {
 
     return NextResponse.json({
       error: false,
-      totalBerita:
-        data.totalBerita ?? data.TotalBerita ?? 0,
 
-      totalDokumen:
-        data.totalDokumen ?? data.TotalDokumen ?? 0,
-
-      totalTransaksiBerita:
-        data.totalTransaksiBerita ??
-        data.TotalTransaksiBerita ??
-        0,
-
-      totalDownloadDokumen:
-        data.totalDownloadDokumen ??
-        data.TotalDownloadDokumen ??
-        0,
-
-      totalKaryawan:
-        data.totalKaryawan ??
-        data.TotalKaryawan ??
-        0,
-
-      totalAnggota:
-        data.totalAnggota ??
-        data.TotalAnggota ??
-        0,
-
-      totalMahasiswa:
-        data.totalMahasiswa ??
-        data.TotalMahasiswa ??
+      totalPengabdianSkema:
+        data.totalPengabdianSkema ??
+        data.TotalPengabdianSkema ??
         0,
 
       totalProposalAnggota:
@@ -110,15 +85,24 @@ export async function GET(request) {
         data.TotalProposalMahasiswa ??
         0,
 
-        totalDataPkm:
-          data.totalDataPkm ??
-          data.TotalDataPkm ??
-          0,
+      totalDataPkm:
+        data.totalDataPkm ??
+        data.TotalDataPkm ??
+        0,
 
-        totalDataProposal:
-          data.totalDataProposal ??
-          data.TotalDataProposal ??
-          0,
+      totalDataProposal:
+        data.totalDataProposal ??
+        data.TotalDataProposal ??
+        0,
+
+      chartPengabdian:
+        data.chartPengabdian ??
+        data.ChartPengabdian ??
+        [],
+      chartDataPkm:
+        data.chartDataPkm ??
+        data.ChartDataPkm ??
+        [],
     });
 
   } catch (error) {

@@ -1,44 +1,41 @@
 import { NextResponse } from "next/server";
 
-export async function GET() {
-  try {
-    const backendUrl =
-      process.env.BACKEND_API_URL;
+export async function GET(request) {
+    try {
+        const { searchParams } = new URL(request.url);
 
-    const response = await fetch(
-      `${backendUrl}/LandingPage/landing/dashboard`
-    );
+        const month = searchParams.get("month");
+        const year = searchParams.get("year");
 
-    const data =
-      await response.json();
+        const backendUrl = process.env.BACKEND_API_URL;
 
-    if (!response.ok) {
-      return NextResponse.json(
-        {
-          error: true,
-          message:
-            data.message || "Gagal mengambil data Penelitian dan Pengabdian.",
-        },
-        {
-          status: response.status,
-        }
-      );
+        const query = new URLSearchParams();
+
+        if (month) query.append("month", month);
+        if (year) query.append("year", year);
+
+        const response = await fetch(
+            `${backendUrl}/LandingPage/landing/dashboard?${query.toString()}`
+        );
+
+        const data = await response.json();
+
+        return NextResponse.json({
+            error: false,
+            data
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return NextResponse.json(
+            {
+                error: true,
+                message: err.message
+            },
+            {
+                status: 500
+            }
+        );
     }
-
-    return NextResponse.json({
-      error: false,
-      data,
-    });
-  } catch (err) {
-    console.error(err);
-
-    return NextResponse.json(
-      {
-        error: true,
-      },
-      {
-        status: 500,
-      }
-    );
-  }
 }

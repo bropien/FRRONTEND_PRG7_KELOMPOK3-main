@@ -148,6 +148,12 @@ export default function DetailBeritaPage() {
                       label="Jenis"
                       value={data.jenis}
                     />
+                    {data.jenis === "Informasi" && (
+                      <DetailItem
+                        label="Penerima"
+                        value={data.penerima}
+                      />
+                    )}
 
                     <DetailItem
                       label="Banner"

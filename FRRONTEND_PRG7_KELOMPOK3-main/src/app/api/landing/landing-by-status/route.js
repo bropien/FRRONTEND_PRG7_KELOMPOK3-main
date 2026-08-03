@@ -8,7 +8,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
 
     const backendEndpoint = new URL(
-      `${backendUrl}/Berita/landing`
+      `${backendUrl}/Berita/landing-by-status`
     );
 
     searchParams.forEach((value, key) => {
@@ -29,7 +29,8 @@ export async function GET(request) {
 
     const result = await response.json();
 
-    console.log(result);
+    console.log("Landing by status response:", result);
+
     if (!response.ok) {
       return NextResponse.json(
         {
